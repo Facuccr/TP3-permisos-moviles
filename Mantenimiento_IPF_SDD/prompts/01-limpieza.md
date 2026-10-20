@@ -1,0 +1,1 @@
+Lee la documentación SDD y el resultado aprobado de T001. Ejecuta SOLO T002. Elimina únicamente los ejemplos que autoricé. No elimines src/app/_layout.tsx, configuración Expo ni archivos esenciales. Deja una pantalla inicial mínima y comprueba arranque, navegación y TypeScript. Reporta exactamente qué cambiaste y espera mi aprobación antes de T003.

@@ -1,0 +1,1 @@
+Lee AGENTS.md, spec.md, architecture.md, plan.md y tasks/README.md. Ejecuta SOLO T001. Inspecciona los archivos reales de este proyecto Expo y su package.json. Confirma SDK, Router, estructura y dependencias. Presenta una tabla de archivos de ejemplo que conviene eliminar y de archivos esenciales que debes conservar. No borres ni modifiques nada todavía. Espera mi aprobación.

@@ -1,0 +1,12 @@
+# Matriz de pruebas manuales
+- Inicio sin permisos: lista y formulario utilizables.
+- Cámara: cargando, preguntable, concedido, bloqueado; ingreso aula manual siempre posible.
+- Rechazo repetido: sin bucles ni diálogos automáticos.
+- Retorno de Ajustes: estado actualizado al volver al primer plano.
+- Fotos: selector abre sin solicitar galería; cancelar no rompe; cámara sí pide permiso contextual.
+- Ubicación: concedida precisa, aproximada, denegada; sector manual y no coordenadas exactas cuando aproximada.
+- Notificaciones: interruptor pide en contexto; Android canal reportes creado antes; resolución guarda aviso interno; notificación local +10 s cuando permitida.
+- ID inexistente: mensaje amigable sin error.
+- iOS/Android: validar diferencias; documentar plataforma efectivamente probada.
+- Build nativa: confirmar textos de propósito, permisos AndroidManifest y capturas de sistema.
+- Entrega: README rutas, plugins comentados en Markdown (JSON real sin comentarios), tabla de permisos, evidencias, RESPUESTAS.md.

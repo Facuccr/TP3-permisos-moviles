@@ -1,0 +1,6 @@
+# Instrucciones para Antigravity CLI
+Proyecto: Mantenimiento IPF. Leer en orden: spec.md, plan.md, architecture.md, decisions/ADR-001.md, tasks/README.md.
+No implementar todo de una vez. Antes de cada tarea: inspeccionar archivos, explicar cambios previstos, esperar autorización cuando haya eliminación o cambios nativos importantes. Ejecutar una tarea por iteración y verificar criterios de aceptación. No inventar funcionalidades ni modificar requisitos de la consigna. No sobrescribir trabajo existente.
+Expo SDK 57, TypeScript estricto, Expo Router con src/app, componentes src/components, hooks src/hooks, lógica src/lib. Preferir funciones flecha y export const para utilidades y componentes nombrados cuando sea compatible con Expo Router. Usar npx expo install para paquetes Expo. Nunca expo-permissions.
+No pedir permisos al iniciar la app. Todas las funcionalidades deben tener alternativa sin permisos. No almacenar respuestas de permisos como verdad persistente. Reconsultar al volver de Ajustes mediante AppState. No solicitar permisos repetidamente en render ni efectos automáticos.
+Al terminar cada tarea informar archivos tocados, pruebas ejecutadas, resultados, limitaciones y próxima tarea. Mantener README.md y checklist actualizados. Nunca afirmar que una prueba en dispositivo ocurrió si no ocurrió.
