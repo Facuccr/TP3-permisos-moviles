@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { notificationsLib } from '@/lib/notifications';
 import { reportsLib } from '@/lib/reports';
 import { Reporte } from '@/types';
 
@@ -89,9 +90,19 @@ export default function DetalleReporteScreen() {
       const actualizado = await reportsLib.actualizarEstadoReporte(reporte.id, 'resuelto');
       if (actualizado) {
         setReporte(actualizado);
-        setMensajeExito(
-          '¡Resolución simulada con éxito! Se ha generado un aviso interno en la bandeja.'
-        );
+
+        // R06: simular resolución agenda notificación local a 10s cuando se permite
+        const notifResult = await notificationsLib.agendarNotificacionResolucion(actualizado);
+
+        if (notifResult.agendada) {
+          setMensajeExito(
+            '¡Resolución simulada con éxito! Se generó el aviso interno y se agendó una notificación del sistema a los 10 segundos.'
+          );
+        } else {
+          setMensajeExito(
+            `¡Resolución simulada con éxito! Se generó el aviso interno en la bandeja. (Notificación del sistema omitida: ${notifResult.motivo || 'no autorizada'}).`
+          );
+        }
       }
     } catch (err) {
       console.error('Error al resolver reporte:', err);

@@ -10,7 +10,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T008 Escáner QR y alternativa manual.
 - [x] T009 Cámara fotográfica y picker sin permiso de galería.
 - [x] T010 Ubicación foreground, aproximada y sector manual.
-- [ ] T011 Notificaciones locales, canal, interruptor y bandeja.
+- [x] T011 Notificaciones locales, canal, interruptor y bandeja.
 - [ ] T012 app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md.
 ## Plantilla de cierre
 Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / criterios cumplidos / riesgos / siguiente tarea.
@@ -191,4 +191,23 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
 - **Criterios cumplidos**: Ubicación foreground implementada, matiz aproximado sin coordenadas respetado (R05), alternativa manual de sector disponible (R09) y persistencia en borrador.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T011 (Notificaciones locales, canal, interruptor y bandeja).
+- **Siguiente tarea**: T011.
+
+### T011
+- **Archivos creados**:
+  - `src/lib/notifications.ts` (Módulo para gestión de notificaciones locales con `expo-notifications`, configuración previa del canal Android 'reportes' según R06, activación contextual ligada al interruptor, handler de presentación en primer plano, y programación de notificación local a 10s tras simular resolución).
+- **Archivos modificados**:
+  - `src/app/ajustes-app.tsx` (Pantalla de Ajustes con interruptor 'Avisarme cuando se resuelva mi reporte', solicitud de permisos únicamente al encender el switch según R06, persistencia en storage, manejo de estado bloqueado con botón para abrir Ajustes, y texto explicativo sobre el canal Android y bandeja interna).
+  - `src/app/reporte/[id].tsx` (Al presionar 'Simular resolución' genera siempre el aviso interno y agenda la notificación local del sistema a 10 segundos únicamente si el interruptor y el permiso están concedidos, informando el estado exacto en el banner de éxito).
+- **Decisiones**:
+  - Regla R06: en Android el canal 'reportes' se crea obligatoriamente antes de solicitar el permiso al sistema operativo.
+  - Regla R06 / R01: la solicitud del permiso de notificaciones se dispara únicamente cuando el usuario activa el interruptor en `/ajustes-app`. Si el usuario deniega o cancela, el switch permanece inactivo y no se insiste (R02).
+  - Complementariedad (ADR-001 punto 4): los avisos internos en `/avisos` se registran siempre sin excepción; la notificación local a 10s es complementaria y se agenda solo cuando está permitida.
+  - Configurar `setNotificationHandler` con presentación completa (`shouldShowAlert`, `shouldPlaySound`, `shouldShowBanner`, `shouldShowList`) para visualización fluida incluso con la app abierta.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones aprobadas.
+  - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
+- **Criterios cumplidos**: Canal Android creado previamente, interruptor contextual en ajustes, aviso interno siempre guardado, notificación local a +10s programada condicionalmente y bandeja funcional.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T012 (app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md).
