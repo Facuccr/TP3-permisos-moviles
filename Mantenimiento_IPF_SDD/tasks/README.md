@@ -5,7 +5,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T003 Implementar rutas, tabs y modal; verificar URL exactas.
 - [x] T004 Crear tipos, persistencia y borrador entre pantallas.
 - [x] T005 Formulario, listado, detalle, id inválido y resolución simulada en datos.
-- [ ] T006 Adaptadores de permisos, hook unificado, AppState y panel.
+- [x] T006 Adaptadores de permisos, hook unificado, AppState y panel.
 - [ ] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
 - [ ] T008 Escáner QR y alternativa manual.
 - [ ] T009 Cámara fotográfica y picker sin permiso de galería.
@@ -98,4 +98,26 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso para Android, iOS y Web con las 15 rutas estáticas y dinámicas resueltas.
 - **Criterios cumplidos**: Formulario funcional con validación, listado conectado con estado vacío, detalle completo con manejo de ID inválido y simulación de resolución en datos con generación de avisos.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T006 (Adaptadores de permisos, hook unificado, AppState y panel).
+- **Siguiente tarea**: T006.
+
+### T006
+- **Archivos creados**:
+  - `src/lib/permissions.ts` (Adaptadores de permisos para cámara, ubicación foreground y notificaciones usando `expo-camera`, `expo-location` y `expo-notifications`; normalización canónica de estados y apertura de ajustes del sistema).
+  - `src/hooks/useAppResume.ts` (Hook utilitario suscrito a `AppState` para detectar el regreso a primer plano `active` tras salir de ajustes).
+  - `src/hooks/usePermiso.ts` (Hook reactivo unificado según R07 que devuelve estado normalizado, indicador de matiz parcial, métodos `pedir`, `abrirAjustes`, `refrescar` y actualización automática en `AppState`).
+  - `src/components/PermissionStatus.tsx` (Componente visual para panel de permisos que expone el estado de cada recurso, diagnóstico técnico R08 con `Platform.OS`, `statusRaw`, `canAskAgain`, matices de precisión y acciones contextuales).
+- **Archivos modificados**:
+  - `package.json` y `package-lock.json` (Instalación de `expo-camera`, `expo-location` y `expo-notifications` compatibles con SDK 57).
+  - `src/types/index.ts` (Definición de `DetallesMatizPermiso` y `ResultadoPermisoNormalizado`).
+  - `src/app/(tabs)/permisos.tsx` (Panel de permisos dinámico con información del principio de mínimo privilegio y renderizado de cada recurso mediante `PermissionStatus`).
+- **Decisiones**:
+  - Respetar estrictamente las reglas de hooks de React: `usePermiso` consume funciones asíncronas puras en `src/lib/permissions.ts` en lugar de llamar hooks nativos específicos de forma condicional según recurso.
+  - Implementar los 4 estados canónicos exactos según la especificación: `null` -> `cargando`, `granted` -> `concedido`, `undetermined` o `denied + canAskAgain true` -> `preguntable`, y `denied + canAskAgain false` -> `bloqueado`.
+  - Integrar reconsulta automática con `AppState` sin almacenar respuestas persistentes falsas, asegurando sincronización inmediata al volver de Ajustes.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones superadas.
+  - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
+- **Criterios cumplidos**: Adaptadores de permisos integrados, hook unificado `usePermiso` con normalización y AppState, y panel de permisos completo con diagnóstico técnico y matices R08.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T007 (Modal previo, lógica Continuar/Abrir Ajustes y no insistir).

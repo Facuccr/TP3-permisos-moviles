@@ -1,61 +1,42 @@
 import { Link, router } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { PermissionStatus } from '@/components/PermissionStatus';
+import { RecursoPermiso } from '@/types';
+
+const RECURSOS: RecursoPermiso[] = ['camara', 'ubicacion', 'notificaciones'];
 
 export default function PermisosScreen() {
-  const recursos = [
-    {
-      id: 'camara',
-      nombre: 'Cámara',
-      descripcion: 'Escaneo de códigos QR en aulas y toma de fotografías.',
-      icono: '📷',
-    },
-    {
-      id: 'ubicacion',
-      nombre: 'Ubicación',
-      descripcion: 'Geolocalización en primer plano para ubicar la incidencia.',
-      icono: '📍',
-    },
-    {
-      id: 'notificaciones',
-      nombre: 'Notificaciones',
-      descripcion: 'Alertas locales al completarse la resolución de un reporte.',
-      icono: '🔔',
-    },
-  ];
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Panel de Permisos</Text>
         <Text style={styles.subtitle}>
-          Visualización de permisos del sistema, plataforma detectada ({Platform.OS}) y matices.
+          Monitoreo del estado en tiempo real de los permisos de hardware, plataforma detectada ({Platform.OS.toUpperCase()}) y matices del sistema operativo.
+        </Text>
+      </View>
+
+      <View style={styles.infoBanner}>
+        <Text style={styles.infoBannerTitle}>Principio de Mínimo Privilegio (R01)</Text>
+        <Text style={styles.infoBannerText}>
+          No se solicitan permisos al abrir la app. Todas las funciones tienen alternativa manual. Al cambiar permisos en Ajustes del dispositivo y regresar a la aplicación, el estado se reconsulta automáticamente mediante AppState.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recursos del Sistema</Text>
-        {recursos.map((rec) => (
-          <View key={rec.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>{rec.icono}</Text>
-              <View style={styles.cardHeaderText}>
-                <Text style={styles.cardTitle}>{rec.nombre}</Text>
-                <Text style={styles.cardSubtitle}>{rec.descripcion}</Text>
-              </View>
-            </View>
-
-            <Pressable
-              style={({ pressed }) => [styles.outlineButton, pressed && styles.buttonPressed]}
-              onPress={() => router.push(`/permisos/${rec.id}` as any)}>
-              <Text style={styles.outlineButtonText}>Ver modal explicativo →</Text>
-            </Pressable>
-          </View>
+        <Text style={styles.sectionTitle}>Estado de Recursos por Hardware</Text>
+        {RECURSOS.map((recurso) => (
+          <PermissionStatus
+            key={recurso}
+            recurso={recurso}
+            onVerExplicacion={() => router.push(`/permisos/${recurso}` as any)}
+          />
         ))}
       </View>
 
       <View style={styles.settingsSection}>
         <Link href="/ajustes-app" asChild>
-          <Pressable style={({ pressed }) => [styles.settingsButton, pressed && styles.buttonPressed]}>
+          <Pressable
+            style={({ pressed }) => [styles.settingsButton, pressed && styles.buttonPressed]}>
             <Text style={styles.settingsButtonText}>⚙️ Ir a Ajustes de la Aplicación</Text>
           </Pressable>
         </Link>
@@ -69,9 +50,10 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f9fafb',
     flexGrow: 1,
+    paddingBottom: 40,
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
     fontSize: 24,
@@ -80,80 +62,56 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#4b5563',
-    lineHeight: 22,
+    lineHeight: 20,
+  },
+  infoBanner: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 20,
+    gap: 4,
+  },
+  infoBannerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1d4ed8',
+  },
+  infoBannerText: {
+    fontSize: 12,
+    color: '#1e40af',
+    lineHeight: 18,
   },
   section: {
-    gap: 12,
+    gap: 4,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#374151',
-    marginBottom: 4,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    gap: 12,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  cardIcon: {
-    fontSize: 24,
-  },
-  cardHeaderText: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    color: '#6b7280',
-    lineHeight: 18,
-  },
-  outlineButton: {
-    backgroundColor: '#eff6ff',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  outlineButtonText: {
-    color: '#2563eb',
-    fontSize: 14,
-    fontWeight: '500',
+    marginBottom: 8,
   },
   settingsSection: {
-    marginTop: 24,
-    marginBottom: 16,
+    marginTop: 8,
   },
   settingsButton: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#d1d5db',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 10,
     alignItems: 'center',
   },
+  buttonPressed: {
+    backgroundColor: '#f3f4f6',
+  },
   settingsButtonText: {
     color: '#374151',
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

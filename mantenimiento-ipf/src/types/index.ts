@@ -47,3 +47,20 @@ export interface PreferenciaAjustes {
 export type RecursoPermiso = 'camara' | 'ubicacion' | 'notificaciones';
 
 export type EstadoPermiso = 'cargando' | 'concedido' | 'preguntable' | 'bloqueado';
+
+export interface DetallesMatizPermiso {
+  accuracy?: 'fine' | 'coarse' | 'full' | 'reduced' | 'none' | string;
+  scope?: string;
+  accessPrivileges?: 'all' | 'limited' | 'none' | string;
+  statusRaw?: string;
+}
+
+export interface ResultadoPermisoNormalizado {
+  recurso: RecursoPermiso;
+  estado: EstadoPermiso;
+  parcial: boolean;
+  canAskAgain: boolean;
+  statusRaw?: string;
+  detalles?: DetallesMatizPermiso;
+  actualizadoEn: string;
+}
