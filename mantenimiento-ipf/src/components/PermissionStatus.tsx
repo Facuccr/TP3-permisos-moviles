@@ -90,6 +90,14 @@ export const PermissionStatus: React.FC<PermissionStatusProps> = ({
 
       <Text style={styles.recursoDescripcion}>{info.descripcion}</Text>
 
+      {onVerExplicacion ? (
+        <Pressable
+          style={({ pressed }) => [styles.explanationLink, pressed && styles.buttonPressed]}
+          onPress={onVerExplicacion}>
+          <Text style={styles.explanationLinkText}>Ver pantalla previa y beneficios →</Text>
+        </Pressable>
+      ) : null}
+
       {/* Matiz parcial si corresponde (R05 / R08) */}
       {parcial ? (
         <View style={styles.parcialBanner}>
@@ -209,6 +217,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#4b5563',
     lineHeight: 18,
+  },
+  explanationLink: {
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  explanationLinkText: {
+    fontSize: 13,
+    color: '#2563eb',
+    fontWeight: '600',
   },
   badge: {
     paddingHorizontal: 10,

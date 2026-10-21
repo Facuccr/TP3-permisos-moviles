@@ -6,7 +6,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T004 Crear tipos, persistencia y borrador entre pantallas.
 - [x] T005 Formulario, listado, detalle, id inválido y resolución simulada en datos.
 - [x] T006 Adaptadores de permisos, hook unificado, AppState y panel.
-- [ ] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
+- [x] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
 - [ ] T008 Escáner QR y alternativa manual.
 - [ ] T009 Cámara fotográfica y picker sin permiso de galería.
 - [ ] T010 Ubicación foreground, aproximada y sector manual.
@@ -120,4 +120,22 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
 - **Criterios cumplidos**: Adaptadores de permisos integrados, hook unificado `usePermiso` con normalización y AppState, y panel de permisos completo con diagnóstico técnico y matices R08.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T007 (Modal previo, lógica Continuar/Abrir Ajustes y no insistir).
+- **Siguiente tarea**: T007.
+
+### T007
+- **Archivos creados**:
+  - `src/components/PermissionExplanation.tsx` (Componente explicativo de permisos con beneficios claros por recurso, lógica de acción Continuar/Abrir Ajustes según estado, nota explícita sobre Ajustes, sin botones 'Ahora no' ni 'Cerrar' dentro de la pantalla según ADR-001 y spec.md, y cierre automático sin insistir tras denegación según R02).
+- **Archivos modificados**:
+  - `src/app/permisos/[recurso].tsx` (Valida que el parámetro de recurso sea soportado y monta `PermissionExplanation` en pantalla modal de Expo Router).
+  - `src/components/PermissionStatus.tsx` (Enlace directo 'Ver pantalla previa y beneficios' hacia el modal `/permisos/[recurso]` para cada recurso).
+- **Decisiones**:
+  - Respetar estrictamente ADR-001 (punto 9) y spec.md: no incluir botones propios de 'Ahora no', 'Cerrar' o 'Cancelar' dentro del layout de la pantalla, conservando la navegación nativa del sistema (deslizamiento hacia abajo en modal iOS o botón/gesto atrás del sistema en Android).
+  - Aplicar regla R02: al presionar 'Continuar' y resolverse el diálogo del sistema operativo (sea concedido o denegado), la pantalla modal se cierra automáticamente (`router.back()`), impidiendo re-mostrar la pantalla explicativa en bucle tras una denegación.
+  - Si el recurso está en estado `bloqueado`, el botón principal conmuta a 'Abrir Ajustes' y ejecuta `abrirAjustes()`, actualizando el estado de forma reactiva al volver a la app.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones aprobadas.
+  - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
+- **Criterios cumplidos**: Modal previo con beneficio por recurso, botones Continuar o Abrir Ajustes según estado, nota sobre Ajustes, omisión de botones de descarte internos y no insistencia automática tras denegación.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T008 (Escáner QR y alternativa manual).
