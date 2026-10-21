@@ -7,7 +7,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T005 Formulario, listado, detalle, id inválido y resolución simulada en datos.
 - [x] T006 Adaptadores de permisos, hook unificado, AppState y panel.
 - [x] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
-- [ ] T008 Escáner QR y alternativa manual.
+- [x] T008 Escáner QR y alternativa manual.
 - [ ] T009 Cámara fotográfica y picker sin permiso de galería.
 - [ ] T010 Ubicación foreground, aproximada y sector manual.
 - [ ] T011 Notificaciones locales, canal, interruptor y bandeja.
@@ -138,4 +138,21 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
 - **Criterios cumplidos**: Modal previo con beneficio por recurso, botones Continuar o Abrir Ajustes según estado, nota sobre Ajustes, omisión de botones de descarte internos y no insistencia automática tras denegación.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T008 (Escáner QR y alternativa manual).
+- **Siguiente tarea**: T008.
+
+### T008
+- **Archivos creados**: Ninguno.
+- **Archivos modificados**:
+  - `src/app/reporte/escanear.tsx` (Integración de `CameraView` de `expo-camera` para escaneo de códigos QR, soporte de los cuatro estados de permiso R03, prevención de lecturas duplicadas mediante flag de bloqueo, alternativa manual de aula siempre disponible con entrada de texto y sugerencias rápidas según R09, simulación para emuladores y actualización inmediata del borrador compartido).
+- **Decisiones**:
+  - Implementar los 4 estados canónicos exactos para la cámara en la pantalla de escaneo: `cargando` (spinner), `bloqueado` (explicación + botón Abrir Ajustes), `preguntable` (explicación contextual + botón para habilitar y enlace a pantalla previa), y `concedido` (visor `CameraView` activo).
+  - Bloquear lecturas repetidas usando un ref síncrono (`escaneandoRef`) y desactivar `onBarcodeScanned` tras la primera lectura válida, evitando ejecuciones o navegaciones duplicadas al enfocar un QR.
+  - Asegurar la alternativa manual en todos los estados (R09): el usuario siempre puede escribir el aula o pulsar un chip de sugerencia y guardar sin conceder permisos de cámara.
+  - Interpretar el QR como identificador de aula según ADR-001 (punto 6).
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones aprobadas.
+  - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
+- **Criterios cumplidos**: Escaneo QR funcional, estados canónicos de cámara cubiertos, prevención de lecturas repetidas, alternativa manual disponible y persistencia en borrador.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T009 (Cámara fotográfica y picker sin permiso de galería).

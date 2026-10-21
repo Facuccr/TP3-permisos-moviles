@@ -1,168 +1,516 @@
-import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { BarcodeScanningResult, CameraView } from 'expo-camera';
+import { usePermiso } from '@/hooks/usePermiso';
 import { useReportDraft } from '@/hooks/useReportDraft';
+
+const SUGERENCIAS_AULAS = ['Aula 104', 'Laboratorio 2', 'Aula Magna', 'Taller 1'];
 
 export default function EscanearQRScreen() {
   const { borrador, actualizarBorrador } = useReportDraft();
+  const { estado, cargando, pedir, abrirAjustes, refrescar } = usePermiso('camara');
 
-  const handleSeleccionarAula = async (aula: string) => {
-    await actualizarBorrador({ aula });
+  const [aulaManual, setAulaManual] = useState(borrador.aula || '');
+  const [errorInput, setErrorInput] = useState<string | null>(null);
+  const [escaneado, setEscaneado] = useState(false);
+  const [ultimoQR, setUltimoQR] = useState<string | null>(null);
+  const escaneandoRef = useRef(false);
+
+  // Reiniciar estado de bloqueo de escaneo al enfocar la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      escaneandoRef.current = false;
+      setEscaneado(false);
+      refrescar();
+    }, [refrescar])
+  );
+
+  // Manejo de lectura de QR evitando lecturas duplicadas en bucle
+  const handleBarcodeScanned = async (result: BarcodeScanningResult) => {
+    if (escaneandoRef.current) return;
+    escaneandoRef.current = true;
+    setEscaneado(true);
+
+    const texto = result.data ? result.data.trim() : '';
+    if (!texto) {
+      escaneandoRef.current = false;
+      setEscaneado(false);
+      return;
+    }
+
+    setUltimoQR(texto);
+
+    // ADR-001 (item 6): el texto del QR se interpreta como identificador de aula
+    await actualizarBorrador({ aula: texto });
     router.back();
   };
 
+  const handleAsignarAula = async (valor: string) => {
+    const texto = valor.trim();
+    if (!texto) {
+      setErrorInput('Por favor, ingresá el nombre o código del aula.');
+      return;
+    }
+    setErrorInput(null);
+    await actualizarBorrador({ aula: texto });
+    router.back();
+  };
+
+  const handleSolicitarPermiso = async () => {
+    await pedir();
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Escanear Código QR</Text>
-        <Text style={styles.subtitle}>
-          Apuntá la cámara al código QR ubicado en la puerta o pared del aula.
-        </Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled">
+        {/* Encabezado */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Escanear Código QR</Text>
+          <Text style={styles.subtitle}>
+            Apuntá la cámara al código QR del aula o ingresá el espacio manualmente.
+          </Text>
+          {borrador.aula ? (
+            <View style={styles.currentBadge}>
+              <Text style={styles.currentBadgeText}>
+                Aula actual en borrador: <Text style={styles.bold}>{borrador.aula}</Text>
+              </Text>
+            </View>
+          ) : null}
+        </View>
 
-      <View style={styles.scannerBox}>
-        <Text style={styles.scannerIcon}>📷</Text>
-        <Text style={styles.scannerText}>Área del visor de cámara QR</Text>
-        <Text style={styles.scannerSubtext}>
-          Se integrará con expo-camera en la tarea T008 contemplando los 4 estados de permiso.
-        </Text>
-        {borrador.aula && (
-          <Text style={styles.currentBadge}>Aula actual en borrador: {borrador.aula}</Text>
-        )}
-      </View>
+        {/* Sección de cámara según los 4 estados de permiso (R03) */}
+        <View style={styles.scannerWrapper}>
+          {cargando ? (
+            <View style={styles.centerBox}>
+              <ActivityIndicator size="large" color="#2563eb" />
+              <Text style={styles.stateSubtitle}>Consultando estado de cámara...</Text>
+            </View>
+          ) : estado === 'bloqueado' ? (
+            <View style={styles.stateBox}>
+              <Text style={styles.stateIcon}>🚫</Text>
+              <Text style={styles.stateTitle}>Cámara bloqueada</Text>
+              <Text style={styles.stateText}>
+                El permiso de cámara fue denegado en el sistema operativo. Para habilitar el escáner debés concederlo desde Ajustes.
+              </Text>
+              <Pressable
+                style={({ pressed }) => [styles.settingsButton, pressed && styles.buttonPressed]}
+                onPress={abrirAjustes}>
+                <Text style={styles.settingsButtonText}>⚙️ Abrir Ajustes del dispositivo</Text>
+              </Pressable>
+            </View>
+          ) : estado === 'preguntable' ? (
+            <View style={styles.stateBox}>
+              <Text style={styles.stateIcon}>📷</Text>
+              <Text style={styles.stateTitle}>Permiso de cámara requerido</Text>
+              <Text style={styles.stateText}>
+                Para escanear códigos QR necesitamos acceder a la cámara. Solo se activará mientras utilices el escáner.
+              </Text>
+              <Pressable
+                style={({ pressed }) => [styles.requestButton, pressed && styles.buttonPressed]}
+                onPress={handleSolicitarPermiso}>
+                <Text style={styles.requestButtonText}>Habilitar cámara</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
+                onPress={() => router.push('/permisos/camara' as any)}>
+                <Text style={styles.linkButtonText}>Ver pantalla previa y beneficios →</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.cameraBox}>
+              <CameraView
+                style={styles.camera}
+                barcodeScannerSettings={{
+                  barcodeTypes: ['qr'],
+                }}
+                onBarcodeScanned={escaneado ? undefined : handleBarcodeScanned}>
+                <View style={styles.overlay}>
+                  <View style={styles.targetFrame}>
+                    <View style={[styles.corner, styles.cornerTL]} />
+                    <View style={[styles.corner, styles.cornerTR]} />
+                    <View style={[styles.corner, styles.cornerBL]} />
+                    <View style={[styles.corner, styles.cornerBR]} />
+                  </View>
+                  <Text style={styles.overlayText}>
+                    {escaneado
+                      ? `✓ Código detectado: ${ultimoQR || ''}`
+                      : 'Centrá el código QR del aula en el recuadro'}
+                  </Text>
+                </View>
+              </CameraView>
+            </View>
+          )}
 
-      <View style={styles.fallbackContainer}>
-        <Text style={styles.fallbackTitle}>Alternativa sin permisos (Ingreso manual)</Text>
-        <Text style={styles.fallbackText}>
-          Siempre es posible ingresar el código o nombre del aula manualmente sin usar la cámara.
-        </Text>
-        <View style={styles.buttonRow}>
-          <Pressable
-            style={({ pressed }) => [styles.actionSmallButton, pressed && styles.buttonPressed]}
-            onPress={() => handleSeleccionarAula('Aula 104')}>
-            <Text style={styles.actionSmallButtonText}>Asignar Aula 104</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.actionSmallButton, pressed && styles.buttonPressed]}
-            onPress={() => handleSeleccionarAula('Laboratorio 2')}>
-            <Text style={styles.actionSmallButtonText}>Asignar Lab 2</Text>
-          </Pressable>
+          {/* Opción de simulación para entornos sin cámara física (emuladores/web) */}
+          {estado === 'concedido' ? (
+            <View style={styles.simContainer}>
+              <Text style={styles.simText}>¿Probando en emulador sin cámara física?</Text>
+              <Pressable
+                style={({ pressed }) => [styles.simButton, pressed && styles.buttonPressed]}
+                onPress={() => handleBarcodeScanned({ data: 'Aula 104' } as any)}>
+                <Text style={styles.simButtonText}>⚡ Simular lectura QR (&apos;Aula 104&apos;)</Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Alternativa sin permisos: Ingreso manual de aula (R03 / R09) */}
+        <View style={styles.fallbackCard}>
+          <Text style={styles.fallbackTitle}>Alternativa sin cámara (Ingreso manual)</Text>
+          <Text style={styles.fallbackSubtitle}>
+            Siempre podés indicar el aula o espacio escribiéndolo o eligiendo una sugerencia rápida.
+          </Text>
+
+          <View style={styles.inputRow}>
+            <TextInput
+              style={[styles.input, errorInput ? styles.inputError : null]}
+              placeholder="Ej: Laboratorio 3, Aula 201..."
+              placeholderTextColor="#9ca3af"
+              value={aulaManual}
+              onChangeText={(val) => {
+                setAulaManual(val);
+                if (errorInput) setErrorInput(null);
+              }}
+            />
+            <Pressable
+              style={({ pressed }) => [styles.assignButton, pressed && styles.buttonPressed]}
+              onPress={() => handleAsignarAula(aulaManual)}>
+              <Text style={styles.assignButtonText}>Asignar</Text>
+            </Pressable>
+          </View>
+          {errorInput ? <Text style={styles.errorText}>{errorInput}</Text> : null}
+
+          <Text style={styles.suggestionsTitle}>Sugerencias rápidas:</Text>
+          <View style={styles.suggestionsRow}>
+            {SUGERENCIAS_AULAS.map((sug) => (
+              <Pressable
+                key={sug}
+                style={({ pressed }) => [
+                  styles.suggestionChip,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={() => handleAsignarAula(sug)}>
+                <Text style={styles.suggestionText}>{sug}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         <Pressable
-          style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [styles.backButton, pressed && styles.buttonPressed]}
           onPress={() => router.back()}>
-          <Text style={styles.secondaryButtonText}>Volver al formulario</Text>
+          <Text style={styles.backButtonText}>← Volver al formulario</Text>
         </Pressable>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  keyboardContainer: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#f9fafb',
-    justifyContent: 'space-between',
+  },
+  container: {
+    padding: 20,
+    flexGrow: 1,
+    gap: 16,
+    paddingBottom: 40,
   },
   header: {
-    marginTop: 8,
+    gap: 4,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,
     color: '#4b5563',
     lineHeight: 20,
   },
-  scannerBox: {
-    backgroundColor: '#1f2937',
-    borderRadius: 16,
-    padding: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 16,
-    aspectRatio: 1.1,
-  },
-  scannerIcon: {
-    fontSize: 44,
-    marginBottom: 8,
-  },
-  scannerText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  scannerSubtext: {
-    color: '#9ca3af',
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: 12,
-  },
   currentBadge: {
-    marginTop: 12,
-    backgroundColor: '#374151',
-    color: '#60a5fa',
-    fontSize: 12,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    fontWeight: '500',
+    paddingVertical: 6,
+    marginTop: 6,
+    alignSelf: 'flex-start',
   },
-  fallbackContainer: {
+  currentBadgeText: {
+    fontSize: 12,
+    color: '#1d4ed8',
+  },
+  bold: {
+    fontWeight: '700',
+  },
+  scannerWrapper: {
+    gap: 8,
+  },
+  centerBox: {
+    height: 280,
     backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  stateBox: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+    gap: 10,
+  },
+  stateIcon: {
+    fontSize: 40,
+    marginBottom: 4,
+  },
+  stateTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+    textAlign: 'center',
+  },
+  stateSubtitle: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  stateText: {
+    fontSize: 13,
+    color: '#4b5563',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  requestButton: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  requestButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  settingsButton: {
+    backgroundColor: '#dc2626',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  settingsButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  linkButton: {
+    paddingVertical: 6,
+    marginTop: 4,
+  },
+  linkButtonText: {
+    color: '#2563eb',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  cameraBox: {
+    height: 300,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+  },
+  camera: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  targetFrame: {
+    width: 200,
+    height: 200,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderColor: '#ffffff',
+  },
+  cornerTL: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+  },
+  cornerTR: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+  },
+  cornerBL: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+  },
+  cornerBR: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+  },
+  overlayText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  simContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    padding: 10,
+    borderRadius: 8,
+  },
+  simText: {
+    fontSize: 11,
+    color: '#6b7280',
+    flex: 1,
+  },
+  simButton: {
+    backgroundColor: '#1f2937',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  simButtonText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  fallbackCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
     gap: 10,
   },
   fallbackTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
   },
-  fallbackText: {
+  fallbackSubtitle: {
     fontSize: 13,
     color: '#6b7280',
     lineHeight: 18,
   },
-  buttonRow: {
+  inputRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
+    marginTop: 2,
   },
-  actionSmallButton: {
+  input: {
     flex: 1,
-    backgroundColor: '#eff6ff',
-    paddingVertical: 10,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
     borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
+  },
+  inputError: {
+    borderColor: '#ef4444',
+    backgroundColor: '#fef2f2',
+  },
+  assignButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  actionSmallButtonText: {
-    color: '#2563eb',
-    fontSize: 13,
+  assignButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
     fontWeight: '600',
   },
-  secondaryButton: {
-    backgroundColor: '#f3f4f6',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
+  errorText: {
+    color: '#dc2626',
+    fontSize: 12,
+  },
+  suggestionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4b5563',
     marginTop: 4,
   },
-  buttonPressed: {
-    opacity: 0.8,
+  suggestionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  secondaryButtonText: {
+  suggestionChip: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  suggestionText: {
+    color: '#1d4ed8',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  backButton: {
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  backButtonText: {
     color: '#374151',
     fontSize: 14,
     fontWeight: '500',
+  },
+  buttonPressed: {
+    opacity: 0.8,
   },
 });
