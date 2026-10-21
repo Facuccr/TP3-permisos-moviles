@@ -8,7 +8,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T006 Adaptadores de permisos, hook unificado, AppState y panel.
 - [x] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
 - [x] T008 Escáner QR y alternativa manual.
-- [ ] T009 Cámara fotográfica y picker sin permiso de galería.
+- [x] T009 Cámara fotográfica y picker sin permiso de galería.
 - [ ] T010 Ubicación foreground, aproximada y sector manual.
 - [ ] T011 Notificaciones locales, canal, interruptor y bandeja.
 - [ ] T012 app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md.
@@ -155,4 +155,22 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
 - **Criterios cumplidos**: Escaneo QR funcional, estados canónicos de cámara cubiertos, prevención de lecturas repetidas, alternativa manual disponible y persistencia en borrador.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T009 (Cámara fotográfica y picker sin permiso de galería).
+- **Siguiente tarea**: T009.
+
+### T009
+- **Archivos creados**: Ninguno.
+- **Archivos modificados**:
+  - `package.json` y `package-lock.json` (Instalación de `expo-image-picker` compatible con SDK 57).
+  - `src/app/reporte/foto.tsx` (Flujo contextual de cámara con verificación de permisos R01/R03, selector de imágenes seguro sin solicitar permisos de lectura de galería según R04, manejo robusto de cancelación sin fallos, vista previa de foto con eliminación o reemplazo, y actualización reactiva en el borrador compartido).
+- **Decisiones**:
+  - Respetar estrictamente la regla R04: invocar `ImagePicker.launchImageLibraryAsync` directamente sin solicitar permisos amplios de galería (`READ_MEDIA_IMAGES`), aprovechando el Photo Picker seguro del sistema operativo.
+  - Para la captura de foto con cámara, evaluar el estado mediante `usePermiso('camara')`: si está concedido lanza `ImagePicker.launchCameraAsync`; si está preguntable solicita el permiso en contexto (R01); si está bloqueado orienta al usuario hacia Ajustes.
+  - Garantizar que cancelar la cámara o el selector no altere la foto previamente elegida ni lance excepciones no capturadas.
+  - Proporcionar simulación de captura para pruebas en emuladores o entornos sin cámara nativa.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones aprobadas.
+  - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
+- **Criterios cumplidos**: Cámara contextual con verificación de permisos, selector seguro sin permisos de galería, manejo de cancelación, vista previa y persistencia de foto en borrador.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T010 (Ubicación foreground, aproximada y sector manual).
