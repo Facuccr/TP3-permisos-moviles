@@ -4,7 +4,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T002 Limpiar demos autorizadas, mantener Expo Router funcional, iniciar y verificar.
 - [x] T003 Implementar rutas, tabs y modal; verificar URL exactas.
 - [x] T004 Crear tipos, persistencia y borrador entre pantallas.
-- [ ] T005 Formulario, listado, detalle, id inválido y resolución simulada en datos.
+- [x] T005 Formulario, listado, detalle, id inválido y resolución simulada en datos.
 - [ ] T006 Adaptadores de permisos, hook unificado, AppState y panel.
 - [ ] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
 - [ ] T008 Escáner QR y alternativa manual.
@@ -76,4 +76,26 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en iOS, Android y Web; 15 rutas resueltas.
 - **Criterios cumplidos**: Tipos de datos completos, persistencia local integrada y sincronización de borrador entre pantallas sin serialización en URL.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T005 (Formulario, listado, detalle, id inválido y resolución simulada en datos).
+- **Siguiente tarea**: T005.
+
+### T005
+- **Archivos creados**:
+  - `src/components/ReportCard.tsx` (Componente de tarjeta para el listado de reportes con badges de categoría y estado, aula, ubicación aproximada/precisa sin exponer coordenadas según R05, indicador de foto y fecha formateada).
+  - `src/components/ReportForm.tsx` (Formulario para nuevo reporte con validación de campos obligatorios, selección de categoría mediante chips, sincronización con el borrador reactivo, acciones de hardware contextuales sin solicitar permisos al montar según R01/R09, y limpieza de borrador).
+- **Archivos modificados**:
+  - `src/app/reporte/nuevo.tsx` (Integra `ReportForm` y redirige al detalle al guardar).
+  - `src/app/(tabs)/index.tsx` (Listado real conectado a `reportsLib.obtenerReportes()` mediante `useFocusEffect`, estado vacío con llamada a la acción y navegación a cada detalle).
+  - `src/app/reporte/[id].tsx` (Pantalla de detalle con validación de ID, manejo amigable de ID inexistente o inválido con botón de retorno, visualización completa de datos, foto y ubicación respetando R05, y botón interactivo para simular resolución en datos con actualización inmediata).
+  - `src/app/(tabs)/avisos.tsx` (Bandeja de avisos conectada a `reportsLib.obtenerAvisos()` con recarga en foco, visualización de avisos generados al resolver reportes, marcación de leídos y enlace al reporte asociado).
+- **Decisiones**:
+  - Mantener estricto cumplimiento de R01: `ReportForm` no solicita permisos de hardware al cargarse.
+  - Cumplir R05: tanto en la tarjeta como en el detalle y formulario, si la ubicación es aproximada, se muestra explícitamente "Ubicación aproximada" sin divulgar latitud ni longitud.
+  - Manejo amigable y robusto de ID inexistente en `reporte/[id]`: pantalla limpia con ícono y botón de retorno al listado sin lanzar errores no controlados.
+  - La simulación de resolución actualiza el estado a `'resuelto'`, persiste la fecha de resolución en almacenamiento local y genera el aviso interno correspondiente.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores de TypeScript.
+  - `npx expo-doctor`: 21/21 verificaciones superadas.
+  - `npx expo export --no-minify`: Bundling exitoso para Android, iOS y Web con las 15 rutas estáticas y dinámicas resueltas.
+- **Criterios cumplidos**: Formulario funcional con validación, listado conectado con estado vacío, detalle completo con manejo de ID inválido y simulación de resolución en datos con generación de avisos.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T006 (Adaptadores de permisos, hook unificado, AppState y panel).
