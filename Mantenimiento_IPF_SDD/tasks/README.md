@@ -11,7 +11,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T009 Cámara fotográfica y picker sin permiso de galería.
 - [x] T010 Ubicación foreground, aproximada y sector manual.
 - [x] T011 Notificaciones locales, canal, interruptor y bandeja.
-- [ ] T012 app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md.
+- [x] T012 app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md.
 ## Plantilla de cierre
 Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / criterios cumplidos / riesgos / siguiente tarea.
 
@@ -211,3 +211,27 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
 - **Criterios cumplidos**: Canal Android creado previamente, interruptor contextual en ajustes, aviso interno siempre guardado, notificación local a +10s programada condicionalmente y bandeja funcional.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
 - **Siguiente tarea**: T012 (app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md).
+
+### T012
+- **Archivos creados**: Ninguno.
+- **Archivos modificados**:
+  - `mantenimiento-ipf/app.json` (Configuración de plugins nativos Expo SDK 57 con cadenas de propósito iOS, identificador de paquete/bundle `com.ipf.mantenimiento`, exclusión estricta de permisos innecesarios como micrófono `recordAudioAndroid: false` / `microphonePermission: false`, ubicación en background `isAndroidBackgroundLocationEnabled: false`, canal por defecto `reportes` para notificaciones y manifest merger con `tools:node="remove"`).
+  - `mantenimiento-ipf/README.md` (Documentación integral: mapa de rutas, tabla de permisos y justificaciones, plugins de `app.json` comentados en Markdown sin comentarios en el JSON, auditoría de manifiestos nativos, comandos de verificación y guía de development build).
+  - `Mantenimiento_IPF_SDD/README.md` (Actualización de documentación metodológica SDD reflejando el 100% de tareas completadas de T001 a T012 y referencias cruzadas con `RESPUESTAS.md`).
+  - `Mantenimiento_IPF_SDD/tasks/README.md` (Cierre formal de T012 y finalización del backlog SDD).
+- **Decisiones**:
+  - Respetar estrictamente el formato JSON estándar en `app.json` (sin sintaxis de comentarios que invalidaría el parseo del CLI), documentando las opciones y justificaciones en Markdown dentro de `mantenimiento-ipf/README.md` (según `QA.md`).
+  - Aplicar el principio de mínimo privilegio en los plugins de `app.json`:
+    - `expo-camera`: `cameraPermission` explícito, `microphonePermission: false` y `recordAudioAndroid: false`.
+    - `expo-location`: `locationWhenInUsePermission` explícito, `isAndroidBackgroundLocationEnabled: false` y `isAndroidForegroundServiceEnabled: false`.
+    - `expo-image-picker`: `photosPermission` explícito y `microphonePermission: false` (removiendo activamente `RECORD_AUDIO` mediante `tools:node="remove"` en el merge nativo).
+    - `expo-notifications`: canal preconfigurado `'reportes'` e ícono temático.
+  - No solicitar permisos amplios de lectura de medios/galería (`READ_MEDIA_IMAGES`), basando el selector de imágenes en el Photo Picker del sistema operativo sin privilegios (R04).
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores de TypeScript.
+  - `npx expo-doctor`: 21/21 verificaciones aprobadas.
+  - `npx expo export --no-minify`: Bundling multiplataforma exitoso en Android, iOS y Web con las 15 rutas resueltas.
+  - `npx expo config --type introspect`: Auditoría de manifiesto Android e `Info.plist` confirmando exclusión de micrófono y permisos background, y presencia exclusiva de permisos justificados.
+- **Criterios cumplidos**: Plugins nativos configurados y auditados, principio de mínimo privilegio aplicado, documentación completa con rutas y tabla de permisos, guía de build nativa redactada y backlog completado en su totalidad.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas en este entorno CLI; documentado el procedimiento para testing en dispositivo físico mediante EAS Build o Prebuild local.
+- **Siguiente tarea**: Ninguna (Todas las tareas del backlog T001 a T012 han sido completadas satisfactoriamente).

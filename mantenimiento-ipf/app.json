@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mantenimiento-ipf",
+    "name": "Mantenimiento IPF",
     "slug": "mantenimiento-ipf",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,9 +8,23 @@
     "scheme": "mantenimientoipf",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.ipf.mantenimiento",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Permite acceder a la cámara para escanear códigos QR de aulas y fotografiar problemas edilicios.",
+        "NSLocationWhenInUseUsageDescription": "Permite geolocalizar la incidencia en primer plano para asistir al equipo de mantenimiento.",
+        "NSPhotoLibraryUsageDescription": "Permite seleccionar imágenes del dispositivo para adjuntar al reporte edilicio."
+      }
     },
     "android": {
+      "package": "com.ipf.mantenimiento",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -31,6 +45,37 @@
           "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite acceder a la cámara para escanear códigos QR de aulas y fotografiar problemas edilicios.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permite geolocalizar la incidencia en primer plano para asistir al equipo de mantenimiento.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permite seleccionar imágenes del dispositivo para adjuntar al reporte edilicio.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#2563eb",
+          "defaultChannel": "reportes"
         }
       ]
     ],

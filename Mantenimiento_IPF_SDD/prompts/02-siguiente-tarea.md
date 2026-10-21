@@ -14,6 +14,6 @@ Reglas:
 - Si una decisión importante no está documentada, consulta antes de implementarla.
 - Actualiza el backlog solamente cuando se cumplan los criterios de aceptación.
 
-Al finalizar, presenta los archivos creados y modificados, las funcionalidades implementadas, las pruebas realizadas y cualquier problema pendiente.
+Al finalizar, presenta los archivos creados y modificados, las funcionalidades implementadas, las pruebas realizadas,cualquier problema pendiente y genera un commit para yo poder realizarlo.
 
 Detente y espera mi aprobación antes de continuar.
