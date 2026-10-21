@@ -9,7 +9,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
 - [x] T008 Escáner QR y alternativa manual.
 - [x] T009 Cámara fotográfica y picker sin permiso de galería.
-- [ ] T010 Ubicación foreground, aproximada y sector manual.
+- [x] T010 Ubicación foreground, aproximada y sector manual.
 - [ ] T011 Notificaciones locales, canal, interruptor y bandeja.
 - [ ] T012 app.json, build, auditoría, pruebas, README, evidencias y RESPUESTAS.md.
 ## Plantilla de cierre
@@ -173,4 +173,22 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
 - **Criterios cumplidos**: Cámara contextual con verificación de permisos, selector seguro sin permisos de galería, manejo de cancelación, vista previa y persistencia de foto en borrador.
 - **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
-- **Siguiente tarea**: T010 (Ubicación foreground, aproximada y sector manual).
+- **Siguiente tarea**: T010.
+
+### T010
+- **Archivos creados**:
+  - `src/lib/location.ts` (Módulo de dominio para geolocalización foreground con `expo-location`, detección de matiz aproximado vs preciso, omisión de coordenadas exactas si la precisión es aproximada según R05, formateo textual y catálogo de sectores frecuentes).
+- **Archivos modificados**:
+  - `src/app/reporte/ubicacion.tsx` (Pantalla de ubicación foreground con verificación de permisos R01/R05, adquisición de posición GPS, manejo de estados preguntable/bloqueado/concedido, alternativa manual de sector edilicio siempre disponible según R05/R09 con entrada libre y chips predefinidos, y simulación de GPS aproximado/preciso para pruebas).
+- **Decisiones**:
+  - Regla R05: cuando el usuario otorga precisión aproximada (Android coarse o iOS reduced), se almacena `{ aproximada: true, latitud: undefined, longitud: undefined }`, impidiendo deliberadamente divulgar o mostrar coordenadas numéricas en cualquier componente.
+  - Ubicación en primer plano únicamente: no se solicita ni implementa geolocalización en background (según spec.md y ADR-001).
+  - Alternativa manual garantizada (R05 / R09): en cualquier estado de permiso (incluso bloqueado o denegado), el usuario puede especificar el sector o ala del edificio manualmente.
+  - Sincronización con el borrador compartido: la selección de ubicación o sector se persiste reactivamente y se refleja en el formulario y en el detalle de la incidencia.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones aprobadas.
+  - `npx expo export --no-minify`: Bundling exitoso en Android, iOS y Web con las 15 rutas resueltas.
+- **Criterios cumplidos**: Ubicación foreground implementada, matiz aproximado sin coordenadas respetado (R05), alternativa manual de sector disponible (R09) y persistencia en borrador.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T011 (Notificaciones locales, canal, interruptor y bandeja).
