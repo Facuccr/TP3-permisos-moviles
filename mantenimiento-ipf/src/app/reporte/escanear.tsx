@@ -1,7 +1,15 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useReportDraft } from '@/hooks/useReportDraft';
 
 export default function EscanearQRScreen() {
+  const { borrador, actualizarBorrador } = useReportDraft();
+
+  const handleSeleccionarAula = async (aula: string) => {
+    await actualizarBorrador({ aula });
+    router.back();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -17,13 +25,29 @@ export default function EscanearQRScreen() {
         <Text style={styles.scannerSubtext}>
           Se integrará con expo-camera en la tarea T008 contemplando los 4 estados de permiso.
         </Text>
+        {borrador.aula && (
+          <Text style={styles.currentBadge}>Aula actual en borrador: {borrador.aula}</Text>
+        )}
       </View>
 
       <View style={styles.fallbackContainer}>
-        <Text style={styles.fallbackTitle}>Alternativa sin permisos</Text>
+        <Text style={styles.fallbackTitle}>Alternativa sin permisos (Ingreso manual)</Text>
         <Text style={styles.fallbackText}>
           Siempre es posible ingresar el código o nombre del aula manualmente sin usar la cámara.
         </Text>
+        <View style={styles.buttonRow}>
+          <Pressable
+            style={({ pressed }) => [styles.actionSmallButton, pressed && styles.buttonPressed]}
+            onPress={() => handleSeleccionarAula('Aula 104')}>
+            <Text style={styles.actionSmallButtonText}>Asignar Aula 104</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.actionSmallButton, pressed && styles.buttonPressed]}
+            onPress={() => handleSeleccionarAula('Laboratorio 2')}>
+            <Text style={styles.actionSmallButtonText}>Asignar Lab 2</Text>
+          </Pressable>
+        </View>
+
         <Pressable
           style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
           onPress={() => router.back()}>
@@ -58,15 +82,15 @@ const styles = StyleSheet.create({
   scannerBox: {
     backgroundColor: '#1f2937',
     borderRadius: 16,
-    padding: 32,
+    padding: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 24,
-    aspectRatio: 1,
+    marginVertical: 16,
+    aspectRatio: 1.1,
   },
   scannerIcon: {
-    fontSize: 48,
-    marginBottom: 12,
+    fontSize: 44,
+    marginBottom: 8,
   },
   scannerText: {
     color: '#ffffff',
@@ -81,6 +105,16 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: 12,
   },
+  currentBadge: {
+    marginTop: 12,
+    backgroundColor: '#374151',
+    color: '#60a5fa',
+    fontSize: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontWeight: '500',
+  },
   fallbackContainer: {
     backgroundColor: '#ffffff',
     padding: 16,
@@ -88,24 +122,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     marginBottom: 16,
+    gap: 10,
   },
   fallbackTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 4,
   },
   fallbackText: {
     fontSize: 13,
     color: '#6b7280',
-    marginBottom: 12,
     lineHeight: 18,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionSmallButton: {
+    flex: 1,
+    backgroundColor: '#eff6ff',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  actionSmallButtonText: {
+    color: '#2563eb',
+    fontSize: 13,
+    fontWeight: '600',
   },
   secondaryButton: {
     backgroundColor: '#f3f4f6',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 4,
   },
   buttonPressed: {
     opacity: 0.8,

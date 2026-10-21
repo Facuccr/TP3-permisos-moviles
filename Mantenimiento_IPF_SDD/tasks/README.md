@@ -3,7 +3,7 @@ Usar T001 a T012 en orden. Estado inicial: TODO. Actualizar a DOING / DONE / BLO
 - [x] T001 Inspeccionar plantilla y dependencias; entregar inventario y plan de limpieza (sin borrar aún).
 - [x] T002 Limpiar demos autorizadas, mantener Expo Router funcional, iniciar y verificar.
 - [x] T003 Implementar rutas, tabs y modal; verificar URL exactas.
-- [ ] T004 Crear tipos, persistencia y borrador entre pantallas.
+- [x] T004 Crear tipos, persistencia y borrador entre pantallas.
 - [ ] T005 Formulario, listado, detalle, id inválido y resolución simulada en datos.
 - [ ] T006 Adaptadores de permisos, hook unificado, AppState y panel.
 - [ ] T007 Modal previo, lógica Continuar/Abrir Ajustes y no insistir.
@@ -55,4 +55,25 @@ Tarea / archivos modificados / decisiones / pruebas (comando y resultado) / crit
   - `npx expo export --no-minify`: Bundling exitoso en iOS, Android y Web; las 15 rutas estáticas y dinámicas resueltas correctamente sin advertencias ni conflictos.
 - **Criterios cumplidos**: Todas las rutas de `spec.md` existen y resuelven; Stack raíz y Tabs configurados con navegación funcional.
 - **Riesgos / Limitaciones**: Sin emulador ni dispositivo físico en este entorno; verificación basada en compilación estática y bundling Metro multiplataforma.
-- **Siguiente tarea**: T004 (Crear tipos, persistencia y borrador entre pantallas).
+### T004
+- **Archivos creados**:
+  - `src/types/index.ts` (Modelos `Reporte`, `Aviso`, `BorradorReporte`, `PreferenciaAjustes`, tipos de categoría, estados y permisos).
+  - `src/lib/storage.ts` (Capa de almacenamiento persistente AsyncStorage para reportes, avisos, borrador y preferencias).
+  - `src/lib/reports.ts` (Lógica de dominio: CRUD de reportes, avisos automáticos al resolver, y utilidades de borrador).
+  - `src/hooks/useReportDraft.ts` (Hook reactivo con sincronización inmediata en memoria y persistencia para compartir el borrador entre pantallas).
+- **Archivos modificados**:
+  - `package.json` y `package-lock.json` (instalación de `@react-native-async-storage/async-storage`).
+  - `src/app/reporte/nuevo.tsx` (consumo del borrador reactivo, muestra estado de aula, foto y ubicación, y opción de limpiar).
+  - `src/app/reporte/escanear.tsx` (actualiza campo `aula` en el borrador compartido y regresa sin parámetros en URL).
+  - `src/app/reporte/foto.tsx` (actualiza `fotoUri` en el borrador compartido y regresa sin parámetros en URL).
+  - `src/app/reporte/ubicacion.tsx` (actualiza `ubicacion` o `sector` en el borrador compartido y regresa sin parámetros en URL).
+- **Decisiones**:
+  - Instalar `@react-native-async-storage/async-storage` mediante `npx expo install` compatible con SDK 57 (según `architecture.md`).
+  - Implementar un store reactivo singleton en `useReportDraft` con persistencia en background, evitando pasar URIs o datos complejos en parámetros URL.
+- **Pruebas**:
+  - `npx tsc --noEmit`: 0 errores.
+  - `npx expo-doctor`: 21/21 verificaciones superadas.
+  - `npx expo export --no-minify`: Bundling exitoso en iOS, Android y Web; 15 rutas resueltas.
+- **Criterios cumplidos**: Tipos de datos completos, persistencia local integrada y sincronización de borrador entre pantallas sin serialización en URL.
+- **Riesgos / Limitaciones**: Pruebas en hardware físico no ejecutadas; validación realizada mediante compilación estática y bundling Metro completo.
+- **Siguiente tarea**: T005 (Formulario, listado, detalle, id inválido y resolución simulada en datos).
